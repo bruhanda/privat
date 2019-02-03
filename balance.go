@@ -7,57 +7,98 @@ import (
 	"time"
 )
 
-type Cardbalance struct {
-	XMLName     xml.Name  `xml:"cardbalance"`
-	Card        Card
-	av_balance  float64   `xml:"av_balance"`
-	bal_date    time.Time `xml:"bal_date"`
-	bal_dyn     string    `xml:"bal_dyn"`
-	balance     float64   `xml:"balance"`
-	fin_limit   float64   `xml:"fin_limit"`
-	trade_limit float64   `xml:"trade_limit"`
-}
-type Card struct {
-	XMLName          xml.Name `xml:"card"`
-	account          int      `xml:"account"`
-	card_number      int      `xml:"card_number"`
-	acc_name         string   `xml:"acc_name"`
-	acc_type         string   `xml:"acc_type"`
-	currency         string   `xml:"currency"`
-	card_type        string   `xml:"card_type"`
-	main_card_number int      `xml:"main_card_number"`
-	card_stat        string   `xml:"card_stat"`
-	src              string   `xml:"src"`
+type BalanceRequest struct {
+	XMLName  xml.Name `xml:"request"`
+	Version  string   `xml:"version,attr"`
+	Merchant Merchant `xml:"merchant"`
+	Data struct {
+		XMLName xml.Name `xml:"data"`
+		Oper    string   `xml:"oper"`
+		Wait    int      `xml:"wait"`
+		Test    int      `xml:"test"`
+		Payment Payment
+	}
 }
 
-func (api *Privat24Api) GetBalance(cardNumber string) {
+type BalanceResponse struct {
+	XMLName  xml.Name `xml:"request"`
+	Version  float64  `xml:"version,attr"`
+	Merchant Merchant `xml:"merchant"`
+	Data struct {
+		XMLName xml.Name `xml:"data"`
+		Oper    string   `xml:"oper"`
+		Info struct {
+			XMLName     xml.Name `xml:"info"`
+			Cardbalance Cardbalance
+		}
+	}
+}
+
+type Cardbalance struct {
+	XMLName    xml.Name  `xml:"cardbalance"`
+	Card       Card
+	AvBalance  float64   `xml:"av_balance"`
+	BalDate    time.Time `xml:"bal_date"`
+	BalDyn     string    `xml:"bal_dyn"`
+	Balance    float64   `xml:"balance"`
+	FinLimit   float64   `xml:"fin_limit"`
+	TradeLimit float64   `xml:"trade_limit"`
+}
+
+type Card struct {
+	XMLName        xml.Name `xml:"card"`
+	Account        int      `xml:"account"`
+	CardNumber     int      `xml:"card_number"`
+	AccName        string   `xml:"acc_name"`
+	AccType        string   `xml:"acc_type"`
+	Currency       string   `xml:"currency"`
+	CardType       string   `xml:"card_type"`
+	MainCardNumber int      `xml:"main_card_number"`
+	CardStat       string   `xml:"card_stat"`
+	Src            string   `xml:"src"`
+}
+
+func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponse {
 	url := api.apiUrl + "/balance"
 
-	data := new(Data)
-	items := make([]interface{}, 4)
-
 	paymentProp := make([]Prop, 2)
-	paymentProp = append(paymentProp, Prop{Name: "cardnum", Value: cardNumber}, Prop{Name: "country", Value: "UA"})
+	paymentProp[0] = Prop{Name: "cardnum", Value: cardNumber}
+	paymentProp[1] = Prop{Name: "country", Value: "UA"}
 
-	payment := new(Payment)
-	payment.Properties = paymentProp
+	balanceRequest := new(BalanceRequest)
+	balanceRequest.Version = "1.0"
+	balanceRequest.Data.Oper = "cmt"
+	balanceRequest.Data.Wait = 0
+	balanceRequest.Data.Test = 0
+	balanceRequest.Data.Payment.Properties = paymentProp
 
-	items = append(items, new(Oper), new(Wait), new(Test), payment)
+	data, err := xml.Marshal(balanceRequest.Data)
+	if err != nil {
+		log.Println(err)
+	}
 
-	data.Items = items
+	balanceRequest.Merchant.ID = api.merchantID
+	balanceRequest.Merchant.Signature = SHA1(GetMD5Hash(string(data) + api.merchantPassword))
 
-	queryXML := new(QueryXML)
-	queryXML.setMerchant(api.merchantID, api.merchantPassword)
-	queryXML.Data = *data
-
-	xml, err := xml.Marshal(queryXML)
+	bytexml, err := xml.Marshal(balanceRequest)
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	res, err := api.requestXML(url, bytes.NewBuffer(xml))
+	reqBody := append([]byte{}, []byte(xml.Header)...)
+	reqBody = append(reqBody, bytexml...)
+
+	response, err := api.requestXML(url, bytes.NewBuffer(bytexml), "POST")
 	if err != nil {
 		log.Println(err.Error())
 	}
 
+	balanceResponse := new(BalanceResponse)
+
+	err = xml.Unmarshal(response, &balanceResponse)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	return *balanceResponse
 }

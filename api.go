@@ -7,6 +7,8 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"github.com/golang/mock/mockgen/tests/custom_package_name/client/v1"
+	"net/rpc"
 )
 
 const apiUrl = "https://api.privatbank.ua"
@@ -28,9 +30,9 @@ func NewApi(merchantID int, merchantPassword string) (*Privat24Api, error) {
 	return api, nil
 }
 
-func (api *Privat24Api) requestXML(url string, body io.Reader) ([]byte, error) {
+func (api *Privat24Api) requestXML(url string, body io.Reader, method string) ([]byte, error) {
 
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest(http.Request{}.Method, url, body)
 	if err != nil {
 		return nil, err
 	}
