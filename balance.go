@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type BalanceRequest struct {
+type BalanceRequestXML struct {
 	XMLName  xml.Name `xml:"request"`
 	Version  string   `xml:"version,attr"`
 	Merchant Merchant `xml:"merchant"`
@@ -20,7 +20,7 @@ type BalanceRequest struct {
 	}
 }
 
-type BalanceResponse struct {
+type BalanceResponseXML struct {
 	XMLName  xml.Name `xml:"request"`
 	Version  float64  `xml:"version,attr"`
 	Merchant Merchant `xml:"merchant"`
@@ -58,14 +58,14 @@ type Card struct {
 	Src            string   `xml:"src"`
 }
 
-func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponse {
+func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponseXML {
 	url := api.apiUrl + "/balance"
 
 	paymentProp := make([]Prop, 2)
 	paymentProp[0] = Prop{Name: "cardnum", Value: cardNumber}
 	paymentProp[1] = Prop{Name: "country", Value: "UA"}
 
-	balanceRequest := new(BalanceRequest)
+	balanceRequest := new(BalanceRequestXML)
 	balanceRequest.Version = "1.0"
 	balanceRequest.Data.Oper = "cmt"
 	balanceRequest.Data.Wait = 0
@@ -93,7 +93,7 @@ func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponse {
 		log.Println(err.Error())
 	}
 
-	balanceResponse := new(BalanceResponse)
+	balanceResponse := new(BalanceResponseXML)
 
 	err = xml.Unmarshal(response, &balanceResponse)
 	if err != nil {
