@@ -61,16 +61,15 @@ type Card struct {
 func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponseXML {
 	url := api.apiUrl + "/balance"
 
-	paymentProp := make([]Prop, 2)
-	paymentProp[0] = Prop{Name: "cardnum", Value: cardNumber}
-	paymentProp[1] = Prop{Name: "country", Value: "UA"}
+	payment:=new(Payment)
+	payment.SetBalanceProperties(cardNumber, "UA")
 
 	balanceRequest := new(BalanceRequestXML)
 	balanceRequest.Version = "1.0"
 	balanceRequest.Data.Oper = "cmt"
 	balanceRequest.Data.Wait = 0
 	balanceRequest.Data.Test = 0
-	balanceRequest.Data.Payment.Properties = paymentProp
+	balanceRequest.Data.Payment=*payment
 
 	data, err := xml.Marshal(balanceRequest.Data)
 	if err != nil {

@@ -30,29 +30,29 @@ type Info struct {
 	Items   []interface{}
 }
 
-//func NewQueryXML(merchantID int, merchantPassword string, data Data) []byte {
-//	queryXML := new(QueryXML)
-//	queryXML.Version = "1.0"
-//	queryXML.Data = data
-//	queryXML.setMerchant(merchantID, merchantPassword)
-//	res, err := xml.Marshal(queryXML)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//
-//	return res
-//}
-//
-//func (qd *QueryXML) setMerchant(merchantID int, merchantPassword string) {
-//	res, err := xml.Marshal(qd.Data)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//	merchant := new(Merchant)
-//	merchant.ID = merchantID
-//	merchant.Signature = SHA1(GetMD5Hash(string(res) + merchantPassword))
-//	qd.Merchant = *merchant
-//}
+// установить prop для просмотра баланса
+// cardnum Номер карты
+// country Страна
+func (p *Payment) SetBalanceProperties(cardnum string, country string) {
+	paymentProp := make([]Prop, 2)
+	paymentProp[0] = Prop{Name: "cardnum", Value: cardnum}
+	paymentProp[1] = Prop{Name: "country", Value: country}
+	p.Properties = paymentProp
+}
+
+// prop для платежа на карту приват банка
+// bCardOrAcc Карта или счёт получателя
+// amt Сумма Напр.: 23.05
+// ccy Валюта (UAH, EUR, USD)
+// details Назначение платежа
+func (p *Payment) SetPrivatPaymentProperties(bCardOrAcc string, amt string, ccy string, details string) {
+	paymentProp := make([]Prop, 4)
+	paymentProp[0] = Prop{Name: "b_card_or_acc", Value: bCardOrAcc}
+	paymentProp[1] = Prop{Name: "amt", Value: amt}
+	paymentProp[2] = Prop{Name: "ccy", Value: ccy}
+	paymentProp[3] = Prop{Name: "amt", Value: details}
+	p.Properties = paymentProp
+}
 
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
