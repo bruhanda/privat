@@ -70,14 +70,7 @@ func (api *Privat24Api) GetBalance(cardNumber string) BalanceResponseXML {
 	balanceRequest.Data.Wait = 0
 	balanceRequest.Data.Test = 0
 	balanceRequest.Data.Payment=*payment
-
-	data, err := xml.Marshal(balanceRequest.Data)
-	if err != nil {
-		log.Println(err)
-	}
-
-	balanceRequest.Merchant.ID = api.merchantID
-	balanceRequest.Merchant.Signature = SHA1(GetMD5Hash(string(data) + api.merchantPassword))
+	balanceRequest.Merchant=api.getMerchantStruct(balanceRequest.Data)
 
 	bytexml, err := xml.Marshal(balanceRequest)
 	if err != nil {

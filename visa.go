@@ -2,7 +2,7 @@ package privat
 
 import "encoding/xml"
 
-type PrivatPaymentRequestXML struct {
+type VisaPaymentRequestXML struct {
 	XMLName  xml.Name `xml:"request"`
 	Version  string   `xml:"version,attr"`
 	Merchant Merchant `xml:"merchant"`
@@ -15,7 +15,7 @@ type PrivatPaymentRequestXML struct {
 	}
 }
 
-type PrivatPaymentResponseXML struct {
+type VisaPaymentResponseXML struct {
 	XMLName  xml.Name `xml:"request"`
 	Version  string   `xml:"version,attr"`
 	Merchant Merchant `xml:"merchant"`
@@ -35,15 +35,4 @@ type PrivatPaymentResponseXML struct {
 			Cardinfo string   `xml:"cardinfo,attr"`
 		}
 	}
-}
-
-// paymentID - Уникальный идентификатор платежа, присвоенный партнером платежей. Повторяется в ответе на запрос
-// cardNumber - Карта или счёт получателя
-// amount - Сумма Напр.: 23.05
-// currency - Валюта (UAH, EUR, USD)
-// details - Назначение платежа
-// wait - Максимальное время ожидания проведения платежа (в секундах). Диапазон значений 1 - 90.
-// test - Признак тестового платежа (0 - платёж будет проведён немедленно, 1 - платёж будет проверен на корректность, но не будет проведён)
-func (api *Privat24Api) PayPB(paymentID int64, cardNumber int64, amount float64, currency string, details string, wait int, test int) {
-
 }
